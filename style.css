@@ -349,13 +349,10 @@ body::after {
 .task-list {
   flex: 1;
   width: 100%;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-  padding-right: 0.6rem;
+  position: relative;
   margin-bottom: 2rem;
   z-index: 2;
+  /* Disable scrollbar styles since we no longer scroll, items are absolutely positioned */
 }
 
 .task-list::-webkit-scrollbar {
@@ -372,7 +369,7 @@ body::after {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Task Cards */
+/* Task Cards (Scattered Physical Note Effect) */
 .task-card {
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(8px);
@@ -380,21 +377,27 @@ body::after {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-left: 4px solid rgba(255, 255, 255, 0.5);
   padding: 0.9rem 1rem;
-  border-radius: 10px;
+  border-radius: 6px;
   color: #fff;
   font-size: 0.95rem;
   line-height: 1.4;
-  position: relative;
+  /* Support for scattering via JS variables */
+  position: absolute;
+  transform-origin: center center;
+  transform: rotate(var(--task-rot, 0deg));
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  transition: all 0.3s ease;
-  animation: taskEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), z-index 0s;
+  animation: taskEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   word-wrap: break-word;
+  max-width: 80%;
 }
 .task-card:hover {
   background: rgba(255, 255, 255, 0.12);
-  transform: translateY(-2px);
   border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  /* Pop effect out of pile */
+  transform: rotate(var(--task-rot, 0deg)) translateY(-4px) scale(1.05) !important;
+  z-index: 100 !important;
 }
 
 .tl-quad .task-card { border-left-color: var(--quad-red); }

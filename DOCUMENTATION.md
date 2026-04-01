@@ -18,3 +18,9 @@
   - *Tech Notes*:
     - UI: Added CSS `::before` pseudo-element for shimmering linear-gradient hover effects. Integrated `.quadrant-counter` elements dynamically via JavaScript.
     - Logic: Implemented HTML5 Drag and Drop API (`dragstart`, `dragover`, `drop`) mapped to array repositioning. Tasks now convert to input elements on double-click (`dblclick`) for true inline editing.
+
+- **[2026-04-01]**: Freeform Scattered Task Mapping
+  - *Details*: Redesigned `.task-list` to abandon traditional lists. Tasks are now intelligently scattered at randomized coordinates with subtle individual rotations, mimicking a physical "board" full of paper notes that can densely pack activities without requiring scrolling. 
+  - *Tech Notes*:
+    - UI: Stripped CSS scrollbars. Applied `position: absolute` via JS styling to `task-card`s, mapping X/Y arrays visually. Used custom CSS variables (`--task-rot`) alongside `!important` rules on hover states to ensure hovered cards 'pop' up from the pile gracefully via `z-index`.
+    - Logic: Migrated existing tasks to possess XY coordinates and rotational mappings retroactively. Altered Drop mechanics to precisely capture relative drop coordinates, translating dropped actions to precise spatial bounds (e.g. `2% to 85%`).

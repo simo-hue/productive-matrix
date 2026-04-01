@@ -9,6 +9,12 @@ function loadTasks() {
     if (stored) {
         try {
             tasks = JSON.parse(stored);
+            // Retrofit existing tasks with coordinates if they lack them
+            tasks.forEach(task => {
+                if (task.x === undefined) task.x = Math.floor(Math.random() * 60) + 20;
+                if (task.y === undefined) task.y = Math.floor(Math.random() * 60) + 20;
+                if (task.rot === undefined) task.rot = Math.floor(Math.random() * 20) - 10;
+            });
         } catch (e) {
             tasks = [];
         }
@@ -38,14 +44,22 @@ function renderTasks() {
         }
         counterEl.textContent = quadTasks.length.toString().padStart(2, '0');
         
-        // 2. Render Cards
+        // 2. Render Cards Scattered
         quadTasks.forEach(task => {
             const card = document.createElement('div');
             card.className = 'task-card';
             card.draggable = true;
             
+            // Apply randomized positions
+            card.style.position = 'absolute';
+            card.style.left = `${task.x}%`;
+            card.style.top = `${task.y}%`;
+            // Keep rotation logic decoupled from hover transform in CSS
+            card.style.setProperty('--task-rot', `${task.rot}deg`);
+            
             // Text node
             const textNode = document.createElement('span');
+            textNode.className = 'task-text-content';
             textNode.textContent = task.text;
             card.appendChild(textNode);
             
@@ -59,13 +73,20 @@ function renderTasks() {
             };
             card.appendChild(deleteBtn);
             
-            // Shimmer pseudo-element handled via CSS ::before
-            
             // -- Events --
             // Drag Start
             card.addEventListener('dragstart', (e) => {
+                // Ensure data payload exists
                 e.dataTransfer.setData('text/plain', task.id);
                 e.dataTransfer.effectAllowed = 'move';
+                
+                // We calculate drag offset so the card doesn't jump to top-left of mouse
+                const rect = card.getBoundingClientRect();
+                const offsetX = e.clientX - rect.left;
+                const offsetY = e.clientY - rect.top;
+                e.dataTransfer.setData('offsetX', offsetX);
+                e.dataTransfer.setData('offsetY', offsetY);
+                
                 setTimeout(() => card.classList.add('dragging'), 0);
             });
             // Drag End
@@ -73,10 +94,10 @@ function renderTasks() {
                 card.classList.remove('dragging');
             });
             
-            // Inline Editing (Double Click)
+            // Inline Editing
             card.addEventListener('dblclick', (e) => {
                 e.stopPropagation();
-                if (card.querySelector('input')) return; // Already editing
+                if (card.querySelector('input')) return;
                 
                 textNode.style.display = 'none';
                 const input = document.createElement('input');
@@ -98,17 +119,15 @@ function renderTasks() {
                     if (ev.key === 'Escape') renderTasks();
                 });
                 
+                // Stop dragging when editing
+                card.draggable = false;
+                
                 card.insertBefore(input, textNode);
                 input.focus();
             });
 
             list.appendChild(card);
         });
-
-        // Scroll logic (delay slightly for DOM paint)
-        setTimeout(() => {
-            list.scrollTop = list.scrollHeight;
-        }, 10);
     });
 }
 
@@ -118,7 +137,10 @@ function addTask(quadrantId, text) {
         id: Date.now().toString(),
         quadrantId,
         text: text.trim(),
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        x: Math.floor(Math.random() * 60) + 15, // 15% to 75%
+        y: Math.floor(Math.random() * 60) + 15,
+        rot: Math.floor(Math.random() * 24) - 12 // -12 to 12 deg
     };
     tasks.push(newTask);
     saveTasks();
@@ -140,10 +162,13 @@ function updateTaskText(id, newText) {
     }
 }
 
-function moveTask(id, newQuadrantId) {
+function moveTask(id, newQuadrantId, xPercent, yPercent) {
     const task = tasks.find(t => t.id === id);
-    if (task && task.quadrantId !== newQuadrantId) {
+    if (task) {
         task.quadrantId = newQuadrantId;
+        // Keep bounds 2% to 85% to not overflow completely 
+        task.x = Math.max(2, Math.min(85, xPercent));
+        task.y = Math.max(2, Math.min(85, yPercent));
         saveTasks();
         renderTasks();
     }
@@ -167,9 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
     quadrants.forEach(quad => {
         const input = quad.querySelector('.quick-add-input');
         
-        // Input Overlay
         quad.addEventListener('click', (e) => {
-            // Do not trigger if clicking a task or inside a task
             if (e.target.closest('.task-card') || e.target.closest('.task-delete')) return;
             
             document.querySelectorAll('.quadrant.input-active').forEach(q => {
@@ -193,14 +216,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- Drag and Drop Target Logic ---
         quad.addEventListener('dragover', e => {
-            e.preventDefault(); // Necessary to allow dropping
+            e.preventDefault(); 
             e.dataTransfer.dropEffect = 'move';
         });
         
         quad.addEventListener('dragenter', e => {
             e.preventDefault();
-            // Need to filter out children events to prevent flicker
-            if (e.target === quad || e.target.classList.contains('task-list')) {
+            if (e.target === quad || e.target.classList.contains('task-list') || e.target.classList.contains('quadrant-counter')) {
                 quad.classList.add('drag-over');
             }
         });
@@ -215,8 +237,23 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             quad.classList.remove('drag-over');
             const taskId = e.dataTransfer.getData('text/plain');
+            
+            // Parse offset for smooth drop without jumping
+            let offsetX = parseInt(e.dataTransfer.getData('offsetX')) || 0;
+            let offsetY = parseInt(e.dataTransfer.getData('offsetY')) || 0;
+
             if (taskId) {
-                moveTask(taskId, quad.dataset.id);
+                // Determine drop coordinates relative to quadrant
+                const rect = quad.getBoundingClientRect();
+                
+                // Calculate percentage positions
+                const droppedX = e.clientX - rect.left - offsetX;
+                const droppedY = e.clientY - rect.top - offsetY;
+                
+                const percentX = (droppedX / rect.width) * 100;
+                const percentY = (droppedY / rect.height) * 100;
+
+                moveTask(taskId, quad.dataset.id, percentX, percentY);
             }
         });
     });
