@@ -107,13 +107,85 @@ function renderTasks() {
             card.appendChild(deleteBtn);
             
             // -- Events --
-            // Drag Start
+            // Touch Support (Mobile Drag & Drop)
+            let isDraggingTouch = false;
+            let touchOffsetX = 0;
+            let touchOffsetY = 0;
+
+            card.addEventListener('touchstart', (e) => {
+                if (e.touches.length > 1) return;
+                if (card.querySelector('input')) return;
+
+                const touch = e.touches[0];
+                const rect = card.getBoundingClientRect();
+                touchOffsetX = touch.clientX - rect.left;
+                touchOffsetY = touch.clientY - rect.top;
+                isDraggingTouch = true;
+
+                card.style.transition = 'none'; // precise tracking
+                card.classList.add('dragging');
+                card.style.zIndex = 1000;
+            }, {passive: false});
+
+            card.addEventListener('touchmove', (e) => {
+                if (!isDraggingTouch) return;
+                e.preventDefault(); // crucial for mobile
+
+                const touch = e.touches[0];
+                const activeQuad = card.closest('.quadrant');
+                if (!activeQuad) return;
+                
+                const quadRect = activeQuad.getBoundingClientRect();
+                let relativeX = touch.clientX - quadRect.left - touchOffsetX;
+                let relativeY = touch.clientY - quadRect.top - touchOffsetY;
+                
+                let percentX = (relativeX / quadRect.width) * 100;
+                let percentY = (relativeY / quadRect.height) * 100;
+                
+                card.style.left = `${percentX}%`;
+                card.style.top = `${percentY}%`;
+            }, {passive: false});
+
+            card.addEventListener('touchend', (e) => {
+                if (!isDraggingTouch) return;
+                isDraggingTouch = false;
+                card.classList.remove('dragging');
+                card.style.transition = '';
+                card.style.zIndex = '';
+                
+                const touch = e.changedTouches[0];
+                const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+                
+                // Cross-tab dropping: if dropped on a nav button, move to that quad
+                const navBtnDrop = dropTarget?.closest('.nav-btn');
+                if (navBtnDrop) {
+                    const newQuadId = navBtnDrop.dataset.target;
+                    moveTask(task.id, newQuadId, 50, 50);
+                    return;
+                }
+
+                // Dropped within current active tab
+                const activeQuad = card.closest('.quadrant');
+                if (!activeQuad) {
+                    renderTasks(); // reset
+                    return;
+                }
+                
+                const quadRect = activeQuad.getBoundingClientRect();
+                const relativeX = touch.clientX - quadRect.left - touchOffsetX;
+                const relativeY = touch.clientY - quadRect.top - touchOffsetY;
+                
+                const percentX = (relativeX / quadRect.width) * 100;
+                const percentY = (relativeY / quadRect.height) * 100;
+                
+                moveTask(task.id, task.quadrantId, percentX, percentY);
+            });
+
+            // Drag Start (Desktop Native)
             card.addEventListener('dragstart', (e) => {
-                // Ensure data payload exists
                 e.dataTransfer.setData('text/plain', task.id);
                 e.dataTransfer.effectAllowed = 'move';
                 
-                // We calculate drag offset so the card doesn't jump to top-left of mouse
                 const rect = card.getBoundingClientRect();
                 const offsetX = e.clientX - rect.left;
                 const offsetY = e.clientY - rect.top;
@@ -122,7 +194,7 @@ function renderTasks() {
                 
                 setTimeout(() => card.classList.add('dragging'), 0);
             });
-            // Drag End
+            // Drag End Desktop
             card.addEventListener('dragend', () => {
                 card.classList.remove('dragging');
             });
@@ -335,10 +407,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.quadrant')) {
+        if (!e.target.closest('.quadrant') && !e.target.closest('.nav-btn')) {
             document.querySelectorAll('.quadrant.input-active').forEach(q => {
                 q.classList.remove('input-active');
             });
         }
+    });
+
+    // Mobile Tab Navigation Logic
+    const navBtns = document.querySelectorAll('.nav-btn');
+    navBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            navBtns.forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.quadrant').forEach(q => {
+                q.classList.remove('active-tab');
+                q.classList.remove('input-active');
+            });
+            
+            btn.classList.add('active');
+            const targetId = btn.dataset.target;
+            document.querySelector(`.quadrant[data-id="${targetId}"]`).classList.add('active-tab');
+        });
     });
 });
