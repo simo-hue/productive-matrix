@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Productivity Matrix</title>
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div class="app-container">
+      <header class="header">
+        <h1 class="main-title">THE PRODUCTIVITY MATRIX</h1>
+        <p class="subtitle">Focus your energy where it matters most.</p>
+      </header>
+
+      <main class="matrix-wrapper">
+        <div class="matrix">
+          <!-- Labels aligned to grid axes -->
+          <div class="axis-label vertical top">WANT TO DO</div>
+          <div class="axis-label vertical bottom">DON'T WANT TO DO</div>
+          <div class="axis-label horizontal left">UNPRODUCTIVE</div>
+          <div class="axis-label horizontal right">PRODUCTIVE</div>
+
+          <!-- Quadrants -->
+          <div class="quadrant tl-quad">
+            <div class="quadrant-content"></div>
+          </div>
+          <div class="quadrant tr-quad">
+            <div class="quadrant-content"></div>
+          </div>
+          <div class="quadrant bl-quad">
+            <div class="quadrant-content"></div>
+          </div>
+          <div class="quadrant br-quad">
+            <div class="quadrant-content"></div>
+          </div>
+          
+          <!-- Crosshair center point -->
+          <div class="matrix-center-point"></div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
