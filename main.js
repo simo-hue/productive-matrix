@@ -131,15 +131,58 @@ function renderTasks() {
     });
 }
 
+function generateNonOverlappingCoords(quadrantId) {
+    const quadTasks = tasks.filter(t => t.quadrantId === quadrantId);
+    let bestX = 15;
+    let bestY = 15;
+    let maxDistance = -1;
+
+    for (let attempts = 0; attempts < 50; attempts++) {
+        let x = Math.floor(Math.random() * 60) + 15; // 15% to 75%
+        let y = Math.floor(Math.random() * 60) + 15;
+        
+        let minDistance = 9999;
+        let overlap = false;
+
+        for (const t of quadTasks) {
+            const dx = Math.abs(t.x - x);
+            const dy = Math.abs(t.y - y);
+            // If they are within 18% horizontal and 12% vertical distance, they overlap significantly
+            if (dx < 18 && dy < 12) {
+                overlap = true;
+            }
+            
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < minDistance) {
+                minDistance = dist;
+            }
+        }
+
+        if (!overlap) {
+            return { x, y };
+        }
+
+        if (minDistance > maxDistance) {
+            maxDistance = minDistance;
+            bestX = x;
+            bestY = y;
+        }
+    }
+    
+    // If quadrant is heavily populated, return the least-overlapping spot found
+    return { x: bestX, y: bestY };
+}
+
 function addTask(quadrantId, text) {
     if (!text.trim()) return;
+    const coords = generateNonOverlappingCoords(quadrantId);
     const newTask = {
         id: Date.now().toString(),
         quadrantId,
         text: text.trim(),
         createdAt: Date.now(),
-        x: Math.floor(Math.random() * 60) + 15, // 15% to 75%
-        y: Math.floor(Math.random() * 60) + 15,
+        x: coords.x,
+        y: coords.y,
         rot: Math.floor(Math.random() * 24) - 12 // -12 to 12 deg
     };
     tasks.push(newTask);
