@@ -6,3 +6,9 @@
     - Framework: Vite + Vanilla HTML/CSS/JS (`npx create-vite@latest --template vanilla`).
     - Assets: Added dynamic animations in `main.js` and custom CSS styles (including sleek glassmorphic axis labels and quadrant hover states) in `style.css`.
     - Next Steps: Integrate drag-and-drop logic if the user decides to start adding cards/items dynamically inside the quadrants.
+
+- **[2026-04-01]**: Task Insertion and Local Persistence
+  - *Details*: Implemented a clean, inline task insertion mechanism. Users can click any quadrant to reveal a sleek "quick add" input field overlaid at the bottom. Tasks are saved via `localStorage` allowing them to persist through page reloads.
+  - *Tech Notes*:
+    - UI: Integrated custom thin scrollbars, overflow handling, and glassmorphic task cards. Task deletion is handled natively via an elegant hover 'x' button.
+    - Logic: Vanilla JS DOM manipulation mapping state to quadrants. Data is serialized and synced with `localStorage`.

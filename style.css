@@ -64,6 +64,7 @@ body {
   letter-spacing: 6px;
   text-transform: uppercase;
   background: linear-gradient(to right, #ffffff 0%, #a0a0a0 100%);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 0.5rem;
@@ -110,8 +111,8 @@ body {
   overflow: hidden;
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  padding: 1.5rem;
   cursor: pointer;
 }
 
@@ -261,6 +262,132 @@ body::after {
   bottom: -20vh;
   right: -20vw;
   background: var(--quad-blue);
+}
+
+/* Custom Thin Scrollbar for quadrants */
+.task-list {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding-right: 0.6rem;
+  margin-bottom: 2rem;
+  z-index: 2;
+}
+
+.task-list::-webkit-scrollbar {
+  width: 5px;
+}
+.task-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.task-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+.task-list:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Task Cards */
+.task-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 4px solid rgba(255, 255, 255, 0.5);
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+  animation: taskEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  word-wrap: break-word;
+}
+.task-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+.tl-quad .task-card { border-left-color: var(--quad-red); }
+.tr-quad .task-card { border-left-color: var(--quad-green); }
+.bl-quad .task-card { border-left-color: var(--quad-yellow); }
+.br-quad .task-card { border-left-color: var(--quad-blue); }
+
+.task-delete {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s;
+  padding: 2px;
+}
+.task-card:hover .task-delete {
+  opacity: 1;
+}
+.task-delete:hover {
+  color: #ff4b4b;
+}
+
+@keyframes taskEnter {
+  from { opacity: 0; transform: translateY(15px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Quick Add Inline Overlay */
+.quick-add-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: linear-gradient(transparent, rgba(10,13,20, 0.95) 40%);
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10;
+}
+
+/* When quadrant is clicked/active */
+.quadrant.input-active .quick-add-overlay {
+  transform: translateY(0);
+}
+
+.quick-add-input {
+  width: 100%;
+  background: rgba(20, 25, 35, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  outline: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tl-quad .quick-add-input:focus { border-color: var(--quad-red); box-shadow: 0 0 0 2px rgba(255, 75, 91, 0.2); }
+.tr-quad .quick-add-input:focus { border-color: var(--quad-green); box-shadow: 0 0 0 2px rgba(37, 226, 110, 0.2); }
+.bl-quad .quick-add-input:focus { border-color: var(--quad-yellow); box-shadow: 0 0 0 2px rgba(241, 196, 15, 0.2); }
+.br-quad .quick-add-input:focus { border-color: var(--quad-blue); box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2); }
+
+.quick-add-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /* Animations */
