@@ -12,3 +12,9 @@
   - *Tech Notes*:
     - UI: Integrated custom thin scrollbars, overflow handling, and glassmorphic task cards. Task deletion is handled natively via an elegant hover 'x' button.
     - Logic: Vanilla JS DOM manipulation mapping state to quadrants. Data is serialized and synced with `localStorage`.
+
+- **[2026-04-01]**: Professional UX Enhancements (Drag & Drop, Shimmer, Editing)
+  - *Details*: Elevated the app to a premium tier by introducing physics-based Drag and Drop, inline task editing, and ambient matrix counters. Hovering over a task yields a sophisticated glass-shimmer effect.
+  - *Tech Notes*:
+    - UI: Added CSS `::before` pseudo-element for shimmering linear-gradient hover effects. Integrated `.quadrant-counter` elements dynamically via JavaScript.
+    - Logic: Implemented HTML5 Drag and Drop API (`dragstart`, `dragover`, `drop`) mapped to array repositioning. Tasks now convert to input elements on double-click (`dblclick`) for true inline editing.
