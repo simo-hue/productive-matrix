@@ -4,25 +4,58 @@ const STORAGE_KEY = 'productivity_matrix_tasks';
 
 let tasks = [];
 
-function loadTasks() {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-        try {
-            tasks = JSON.parse(stored);
+async function loadTasks() {
+    try {
+        const response = await fetch('/api/tasks');
+        if (response.ok) {
+            const remoteTasks = await response.json();
+            
+            // Migration Layer: pull from localStorage if it exists 
+            const localStored = localStorage.getItem(STORAGE_KEY);
+            if (localStored) {
+                const localTasks = JSON.parse(localStored);
+                // If the remote file is empty but local has data, migrate it over
+                if (remoteTasks.length === 0 && localTasks.length > 0) {
+                    tasks = localTasks; 
+                    await saveTasks(); // push to the new backend
+                    localStorage.removeItem(STORAGE_KEY); 
+                    return;
+                } else {
+                    // It's already migrated or not empty, wipe legacy.
+                    localStorage.removeItem(STORAGE_KEY);
+                }
+            }
+            
+            tasks = remoteTasks;
+            
             // Retrofit existing tasks with coordinates if they lack them
+            let needsSave = false;
             tasks.forEach(task => {
-                if (task.x === undefined) task.x = Math.floor(Math.random() * 60) + 20;
-                if (task.y === undefined) task.y = Math.floor(Math.random() * 60) + 20;
-                if (task.rot === undefined) task.rot = Math.floor(Math.random() * 20) - 10;
+                if (task.x === undefined) { task.x = Math.floor(Math.random() * 60) + 20; needsSave = true; }
+                if (task.y === undefined) { task.y = Math.floor(Math.random() * 60) + 20; needsSave = true; }
+                if (task.rot === undefined) { task.rot = Math.floor(Math.random() * 20) - 10; needsSave = true; }
             });
-        } catch (e) {
-            tasks = [];
+            if (needsSave) saveTasks(); // fire and forget
+            
+        } else {
+            throw new Error("HTTP error " + response.status);
         }
+    } catch (e) {
+        console.error("Failed to load tasks from API:", e);
+        tasks = [];
     }
 }
 
-function saveTasks() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+async function saveTasks() {
+    try {
+        await fetch('/api/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(tasks)
+        });
+    } catch (e) {
+        console.error("Failed to save tasks to API:", e);
+    }
 }
 
 function renderTasks() {
@@ -217,8 +250,8 @@ function moveTask(id, newQuadrantId, xPercent, yPercent) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadTasks();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadTasks();
     renderTasks();
 
     const quadrants = document.querySelectorAll('.quadrant');

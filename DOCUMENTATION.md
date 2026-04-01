@@ -24,3 +24,13 @@
   - *Tech Notes*:
     - UI: Stripped CSS scrollbars. Applied `position: absolute` via JS styling to `task-card`s, mapping X/Y arrays visually. Used custom CSS variables (`--task-rot`) alongside `!important` rules on hover states to ensure hovered cards 'pop' up from the pile gracefully via `z-index`.
     - Logic: Migrated existing tasks to possess XY coordinates and rotational mappings retroactively. Altered Drop mechanics to precisely capture relative drop coordinates, translating dropped actions to precise spatial bounds (e.g. `2% to 85%`). Added a Collision Avoidance algorithm `generateNonOverlappingCoords()` upon new task insertion to ensure newly added activities scan existing nodes and intelligently seek empty space within the quadrant before placing themselves.
+
+- **[2026-04-01]**: Cross-Browser Synchronization (File API Middleware)
+  - *Details*: Upgraded the entire data persistence isolation capability away from browser-specific `localStorage` into a lightweight, headless file-API. Users can now drop tasks on their phone, Safari, and Chrome concurrently, and all devices share the identical `tasks.json` state immediately without requiring any formal database integrations.
+  - *Tech Notes*:
+    - Backend: Configured a `vite.config.js` with a `configureServer` hook. This creates an implicit Node.js middleware mapping `/api/tasks` GET/POST requests directly to a persistent `tasks.json` file on the filesystem using `fs`.
+    - Frontend: Refactored `main.js` functions `loadTasks` and `saveTasks` into `async function(s)` utilizing browser `await fetch()`. Written seamless migration logic in `loadTasks` to silently pull legacy UI state stored in `localStorage` and map it identically into the new `tasks.json` node API.
+
+- **[2026-04-01]**: Repository README & Documentation
+  - *Details*: Authored a comprehensive, professional `README.md` file designed to provide an overview, key features, and an outline of how to use the matrix application. Inserted a placeholder for the requested image to demonstrate the aesthetic design.
+  - *Tech Notes*: Referenced `public/screenshot.png` natively in the markdown. Documented installation flows specifically catered to a Vite build structure (`npm install`, `npm run dev`).
